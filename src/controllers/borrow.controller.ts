@@ -9,7 +9,6 @@ export const borrowBook = async (req: Request, res: Response) => {
   const book = await Book.findById(bookId);
   if (!book) return res.status(404).json({ error: "Book not found" });
 
-  // TypeScript fix — Now book is guaranteed to be non-null
   const copiesAvailable = book.copies ?? 0;
 
   if (copiesAvailable < quantity) {
@@ -32,7 +31,7 @@ export const getBorrowSummary = async (_: Request, res: Response) => {
     {
       $group: {
         _id: "$book",
-        totalQuantity: { $sum: "$quantity" },
+        totalBorrowed: { $sum: "$quantity" },
       },
     },
     {
@@ -46,9 +45,10 @@ export const getBorrowSummary = async (_: Request, res: Response) => {
     { $unwind: "$bookDetails" },
     {
       $project: {
+        bookId: "$_id",
         title: "$bookDetails.title",
         isbn: "$bookDetails.isbn",
-        totalQuantity: 1,
+        totalBorrowed: 1,
       },
     },
   ]);
